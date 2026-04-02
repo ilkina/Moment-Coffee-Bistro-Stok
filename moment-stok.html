@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Moment Stok">
+<meta name="theme-color" content="#0f0f0f">
+<title>Moment Stok</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: #2e2e2e;
+  --text: #f0ece6;
+  --muted: #888;
+  --dim: #555;
+  --accent: #c8a97e;
+  --accent2: #7ec8a9;
+  --danger: #e07070;
+  --warn: #e0b870;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+.app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+/* HEADER */
+.header {
+  padding: calc(var(--safe-top) + 14px) 20px 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.brand { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 16px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background 0.15s;
+}
+.icon-btn:active { background: var(--surface2); transform: scale(0.95); }
+
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-pill {
+  background: var(--surface); border-radius: 10px; padding: 8px 10px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.stat-n { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; line-height: 1; }
+.stat-n.g { color: var(--accent2); }
+.stat-n.r { color: var(--danger); }
+.stat-n.w { color: var(--text); }
+.stat-l { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
+
+.progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent2); border-radius: 2px; transition: width 0.5s ease; }
+
+/* SEARCH + FILTER */
+.controls { padding: 12px 20px; background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.search-wrap { position: relative; margin-bottom: 10px; }
+.search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 15px; padding: 11px 14px 11px 38px; outline: none;
+  transition: border-color 0.15s;
+}
+.search:focus { border-color: var(--accent); }
+.search::placeholder { color: var(--dim); }
+
+.filter-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.filter-row::-webkit-scrollbar { display: none; }
+.ftag {
+  flex-shrink: 0; font-size: 12px; font-weight: 500; padding: 6px 14px;
+  border-radius: 20px; border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.ftag.active { background: var(--accent); border-color: var(--accent); color: #0f0f0f; }
+.ftag:active { transform: scale(0.96); }
+
+/* CAT TABS */
+.cat-nav {
+  display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  background: var(--bg);
+}
+.cat-nav::-webkit-scrollbar { display: none; }
+.cat-tab {
+  flex-shrink: 0; font-size: 12px; padding: 10px 16px;
+  color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.15s; white-space: nowrap; font-weight: 500;
+}
+.cat-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.cat-tab:active { opacity: 0.7; }
+
+/* LIST */
+.list-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.list-inner { padding: 8px 16px calc(var(--safe-bottom) + 80px); }
+
+.cat-section { margin-bottom: 4px; }
+.cat-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--dim); padding: 16px 4px 8px;
+}
+
+.item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 6px;
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  -webkit-user-select: none; user-select: none;
+}
+.item:active { transform: scale(0.98); background: var(--surface2); }
+.item.done { opacity: 0.45; }
+.item.done .item-name { text-decoration: line-through; }
+
+.check {
+  width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+  border: 2px solid var(--border); display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s;
+}
+.item.done .check { background: var(--accent2); border-color: var(--accent2); }
+.check-svg { opacity: 0; transition: opacity 0.15s; }
+.item.done .check-svg { opacity: 1; }
+
+.item-body { flex: 1; min-width: 0; }
+.item-name { font-size: 15px; font-weight: 400; color: var(--text); line-height: 1.3; }
+.item-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.badge {
+  font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+  flex-shrink: 0; letter-spacing: 0.04em;
+}
+.badge.var { background: rgba(126,200,169,0.12); color: var(--accent2); }
+.badge.eksik { background: rgba(224,112,112,0.12); color: var(--danger); }
+
+.empty { text-align: center; color: var(--dim); padding: 48px 20px; font-size: 14px; }
+.empty-icon { font-size: 36px; margin-bottom: 12px; }
+
+/* BOTTOM SHEET / ADD PANEL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s; backdrop-filter: blur(4px);
+}
+.overlay.show { opacity: 1; pointer-events: all; }
+
+.sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 0 0 calc(var(--safe-bottom) + 20px);
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  max-height: 80vh; display: flex; flex-direction: column;
+}
+.sheet.show { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 12px auto 0; }
+.sheet-title { font-size: 16px; font-weight: 600; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
+.sheet-body { overflow-y: auto; flex: 1; }
+.sheet-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 15px; padding: 12px 16px; outline: none; margin: 12px 20px; width: calc(100% - 40px);
+}
+.sheet-input:focus { border-color: var(--accent); }
+.cat-option {
+  display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+  cursor: pointer; border-bottom: 1px solid var(--border); font-size: 15px;
+  transition: background 0.1s;
+}
+.cat-option:active { background: var(--surface2); }
+.cat-option.selected { color: var(--accent); }
+.cat-emoji { font-size: 20px; width: 28px; text-align: center; }
+.add-btn {
+  margin: 12px 20px 0; width: calc(100% - 40px); padding: 15px;
+  background: var(--accent); color: #0f0f0f; border: none; border-radius: 14px;
+  font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.add-btn:active { transform: scale(0.97); }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: calc(var(--safe-bottom) + 20px); right: 20px; z-index: 40;
+  width: 56px; height: 56px; border-radius: 18px; background: var(--accent);
+  border: none; color: #0f0f0f; font-size: 26px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(200,169,126,0.3);
+  transition: all 0.15s;
+}
+.fab:active { transform: scale(0.92); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: calc(var(--safe-bottom) + 90px); left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  font-size: 13px; padding: 10px 20px; border-radius: 20px; z-index: 100;
+  opacity: 0; transition: all 0.25s; white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="brand">☕ Moment Stok</div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="resetAll()" title="Sıfırla">↺</button>
+        <button class="icon-btn" onclick="copyMissing()" title="Eksikleri kopyala">⎘</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="stat-n g" id="s-ok">0</div><div class="stat-l">Mevcut</div></div>
+      <div class="stat-pill"><div class="stat-n r" id="s-miss">0</div><div class="stat-l">Eksik</div></div>
+      <div class="stat-pill"><div class="stat-n w" id="s-total">0</div><div class="stat-l">Toplam</div></div>
+    </div>
+    <div class="progress"><div class="progress-fill" id="prog"></div></div>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search" type="search" placeholder="Malzeme ara..." id="search" oninput="render()" autocomplete="off" />
+    </div>
+    <div class="filter-row">
+      <button class="ftag active" onclick="setFilter('tumu',this)">Tümü</button>
+      <button class="ftag" onclick="setFilter('eksik',this)">Eksikler</button>
+      <button class="ftag" onclick="setFilter('var',this)">Mevcut</button>
+    </div>
+  </div>
+
+  <div class="cat-nav" id="cat-nav"></div>
+
+  <div class="list-wrap">
+    <div class="list-inner" id="list"></div>
+  </div>
+</div>
+
+<button class="fab" onclick="openAdd()">+</button>
+
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Yeni Malzeme Ekle</div>
+  <div class="sheet-body">
+    <input class="sheet-input" type="text" placeholder="Malzeme adı..." id="new-name" autocomplete="off" />
+    <input class="sheet-input" type="text" placeholder="Not (opsiyonel)..." id="new-note" autocomplete="off" />
+    <div id="cat-list"></div>
+    <button class="add-btn" onclick="addItem()">Ekle</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = [
+  { id:'kahve', label:'Kahve & Espresso', emoji:'☕', items:[
+    {n:'Espresso çekirdeği', note:'Ana ham madde'},
+    {n:'Filtre kahve', note:'Sade/sütlü'},
+    {n:'Türk kahvesi'},
+    {n:'Nescafe Sütlü Köpüklü', note:'Stick'},
+    {n:'Nescafe Sade', note:'Stick'},
+  ]},
+  { id:'sut', label:'Süt & Alternatifler', emoji:'🥛', items:[
+    {n:'Tam yağlı süt'},
+    {n:'Laktozsuz süt', note:'₺30 ek ücret'},
+    {n:'Badem sütü', note:'₺50 ek ücret'},
+  ]},
+  { id:'cay', label:'Çay & Bitki', emoji:'🍵', items:[
+    {n:'Siyah çay'},
+    {n:'Yeşil çay', note:'Çiçek tane'},
+    {n:'Ihlamur', note:'Çiçek tane'},
+    {n:'Adaçayı', note:'Çiçek tane'},
+  ]},
+  { id:'soguk', label:'Soğuk İçecekler', emoji:'🥤', items:[
+    {n:'Coca Cola / Zero kutu 330ml'},
+    {n:'Fanta kutu 330ml'},
+    {n:'Sprite kutu 330ml'},
+    {n:'Ice Tea Şeftali 330ml'},
+    {n:'Ice Tea Limon 330ml'},
+    {n:'Sade soda 200ml'},
+    {n:'Meyveli soda 200ml'},
+    {n:'Su 0.5L'},
+    {n:'Su 1L'},
+    {n:'Ayran'},
+    {n:'Kavaklıdere Şalgam'},
+    {n:'Red Bull 250ml'},
+    {n:'Nescafe Express 250ml'},
+    {n:'Capri Sun'},
+    {n:'Pin Hibiscus 250ml'},
+  ]},
+  { id:'smoothie', label:'Smoothie', emoji:'🫐', items:[
+    {n:'Çilek'},
+    {n:'Muz'},
+    {n:'Böğürtlen'},
+    {n:'Yaban mersini'},
+    {n:'Yoğurt'},
+    {n:'Ispanak'},
+    {n:'Limon', note:'Smoothie + salata + servis'},
+  ]},
+  { id:'bira', label:'Bira', emoji:'🍺', items:[
+    {n:'Tuborg Gold şişe/kutu 50 CL'},
+    {n:'Tuborg Special 50 CL'},
+    {n:'Tuborg Filtresiz şişe/kutu 50 CL'},
+    {n:'Tuborg Amber şişe/kutu 50 CL'},
+    {n:'Tuborg Special Shot 237 ML'},
+    {n:'Tuborg Ice 33CL / 50 CL'},
+    {n:'Efes Pilsen şişe/kutu 50 CL'},
+    {n:'Efes Pilsen Green 50 CL'},
+    {n:'Efes Malt 50 CL'},
+    {n:'Bomonti Filtresiz 50 CL'},
+    {n:'Carlsberg şişe/kutu 50 CL'},
+    {n:'Carlsberg Luna 50 CL'},
+    {n:'Blanc şişe 33 CL'},
+    {n:'Blanc kutu 50 CL'},
+  ]},
+  { id:'salata', label:'Salata', emoji:'🥗', items:[
+    {n:'Marul (Romaine)'},
+    {n:'Parmesan'},
+    {n:'Kruton', note:'Biz yapalım'},
+    {n:'Sezar sos'},
+    {n:'Mozzarella (suda)'},
+    {n:'Domates (cherry)'},
+    {n:'Fesleğen'},
+    {n:'Mevsim yeşillikleri'},
+    {n:'Salatalık'},
+    {n:'Biber (sivri)'},
+    {n:'Soğan (kuru)'},
+    {n:'Zeytinyağı (sızma)', note:'Servis + salata'},
+    {n:'Nar ekşisi', note:'Servis'},
+    {n:'Hellim peyniri'},
+    {n:'Maydanoz'},
+  ]},
+  { id:'hotdog', label:'Hotdog', emoji:'🌭', items:[
+    {n:'Dana sosis'},
+    {n:'Hotdog ekmeği'},
+    {n:'Cheddar peyniri', note:'Eritilmiş'},
+    {n:'Çıtır soğan (fried onion)'},
+    {n:'Turşu (cornichon)'},
+    {n:'BBQ sos'},
+    {n:'Ketçap / hardal / özel sos'},
+  ]},
+  { id:'burger', label:'Burger & Tost', emoji:'🍔', items:[
+    {n:'Burger köftesi (dana)'},
+    {n:'Burger ekmeği'},
+    {n:'Kaşar peyniri'},
+    {n:'Sucuk'},
+    {n:'Marul (burger)'},
+    {n:'Domates (dilimlenmiş)'},
+    {n:'Ketçap / mayonez'},
+  ]},
+  { id:'pizza', label:'Pizza', emoji:'🍕', items:[
+    {n:'Pizza hamuru / baz'},
+    {n:'Domates sosu (pizza)'},
+    {n:'Mozzarella (rendelenmiş)'},
+    {n:'Sucuk (pizza)'},
+    {n:'Mantar'},
+    {n:'4 peynir karışımı'},
+  ]},
+  { id:'citir', label:'Kızartma & Çıtır', emoji:'🍟', items:[
+    {n:'Patates kızartması'},
+    {n:'Soğan halkası'},
+    {n:'Çıtır tavuk (pane)'},
+    {n:'Sigara böreği (peynirli)'},
+    {n:'İçli köfte'},
+    {n:'Kızartma yağı'},
+  ]},
+  { id:'ekipman', label:'Ekipman', emoji:'🧰', items:[
+    {n:'French press', note:'3 adet'},
+    {n:'Latte bardağı'},
+    {n:'Sıcak kahve fincan/bardak'},
+    {n:'Soğuk kahve bardak'},
+    {n:'Tepsi'},
+    {n:'Hot dog makinesi'},
+    {n:'Tekli ızgara flat plate'},
+    {n:'Salata kasesi'},
+    {n:'Çıtırlar için sepet'},
+  ]},
+];
+
+let state = {};
+let filter = 'tumu';
+let activeCat = 'all';
+let newCat = CATS[0].id;
+
+function key(catId, name) { return catId + '||' + name; }
+
+function init() {
+  const saved = localStorage.getItem('moment_stok_v2');
+  if (saved) {
+    try { state = JSON.parse(saved); } catch(e) { state = {}; }
+  }
+  CATS.forEach(cat => cat.items.forEach(it => {
+    const k = key(cat.id, it.n);
+    if (!(k in state)) state[k] = false;
+  }));
+  save();
+}
+
+function save() { localStorage.setItem('moment_stok_v2', JSON.stringify(state)); }
+
+function toggle(k) {
+  state[k] = !state[k];
+  save();
+  render();
+}
+
+function resetAll() {
+  if (!confirm('Tüm işaretleri sıfırla?')) return;
+  Object.keys(state).forEach(k => state[k] = false);
+  save();
+  render();
+  toast('Sıfırlandı');
+}
+
+function copyMissing() {
+  const lines = [];
+  CATS.forEach(cat => {
+    const missing = cat.items.filter(it => !state[key(cat.id, it.n)]);
+    if (missing.length) {
+      lines.push(cat.emoji + ' ' + cat.label);
+      missing.forEach(it => lines.push('  • ' + it.n));
+    }
+  });
+  const extra = Object.keys(state).filter(k => !k.includes('||') && !state[k]);
+  navigator.clipboard?.writeText(lines.join('\n')).then(() => toast('Eksikler kopyalandı ✓'));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('.ftag').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function setCat(id) {
+  activeCat = id;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.id === id));
+  render();
+}
+
+function getItems(cat) {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  return cat.items.filter(it => {
+    const k = key(cat.id, it.n);
+    const checked = state[k];
+    if (filter === 'var' && !checked) return false;
+    if (filter === 'eksik' && checked) return false;
+    if (q && !it.n.toLowerCase().includes(q) && !(it.note||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function render() {
+  const all = Object.keys(state);
+  const ok = all.filter(k => state[k]).length;
+  const miss = all.length - ok;
+  document.getElementById('s-ok').textContent = ok;
+  document.getElementById('s-miss').textContent = miss;
+  document.getElementById('s-total').textContent = all.length;
+  document.getElementById('prog').style.width = (all.length ? ok/all.length*100 : 0) + '%';
+
+  // cat tabs
+  const nav = document.getElementById('cat-nav');
+  const catsDom = [{id:'all', label:'Tümü', emoji:''}].concat(CATS).map(c => {
+    const active = activeCat === c.id ? 'active' : '';
+    return `<div class="cat-tab ${active}" data-id="${c.id}" onclick="setCat('${c.id}')">${c.emoji ? c.emoji+' ' : ''}${c.label||'Tümü'}</div>`;
+  }).join('');
+  nav.innerHTML = catsDom;
+
+  // list
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  let html = '';
+  const catsToShow = activeCat === 'all' ? CATS : CATS.filter(c => c.id === activeCat);
+
+  catsToShow.forEach(cat => {
+    const items = getItems(cat);
+    if (!items.length) return;
+    if (activeCat === 'all') {
+      html += `<div class="cat-label">${cat.emoji} ${cat.label}</div>`;
+    }
+    items.forEach(it => {
+      const k = key(cat.id, it.n);
+      const done = state[k];
+      html += `<div class="item ${done?'done':''}" onclick="toggle('${k.replace(/'/g,"\\'")}')">
+        <div class="check">
+          <svg class="check-svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="#0f0f0f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="item-body">
+          <div class="item-name">${it.n}</div>
+          ${it.note ? `<div class="item-note">${it.note}</div>` : ''}
+        </div>
+        <div class="badge ${done?'var':'eksik'}">${done?'Var':'Eksik'}</div>
+      </div>`;
+    });
+  });
+
+  if (!html) html = `<div class="empty"><div class="empty-icon">🔍</div>Sonuç bulunamadı</div>`;
+  document.getElementById('list').innerHTML = html;
+}
+
+// ADD SHEET
+function openAdd() {
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-note').value = '';
+  const cl = CATS.map(c => `<div class="cat-option ${c.id===newCat?'selected':''}" onclick="selectCat('${c.id}',this)">
+    <span class="cat-emoji">${c.emoji}</span>${c.label}
+  </div>`).join('');
+  document.getElementById('cat-list').innerHTML = cl;
+  document.getElementById('sheet').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(() => document.getElementById('new-name').focus(), 300);
+}
+
+function selectCat(id, el) {
+  newCat = id;
+  document.querySelectorAll('.cat-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function addItem() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { document.getElementById('new-name').focus(); return; }
+  const note = document.getElementById('new-note').value.trim();
+  const cat = CATS.find(c => c.id === newCat);
+  if (!cat) return;
+  cat.items.push({n: name, note: note || undefined});
+  state[key(newCat, name)] = false;
+  save();
+  closeSheet();
+  render();
+  toast('Eklendi: ' + name);
+}
+
+init();
+render();
+
+// keyboard enter
+document.getElementById('new-note').addEventListener('keydown', e => { if(e.key==='Enter') addItem(); });
+document.getElementById('new-name').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('new-note').focus(); });
+</script>
+</body>
+</html>
